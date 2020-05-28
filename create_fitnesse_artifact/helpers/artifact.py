@@ -30,7 +30,7 @@
 import supporting.errorcodes as err
 import supporting, logging
 import os
-import create_fitnesse_artifact.helpers.cicd.fitnesse.fitnesseSettings as settings
+import create_fitnesse_artifact.helpers.fitnesseSettings as settings
 import supporting.deploylist
 from pathlib import Path
 from supporting.generatezip import generate_zip

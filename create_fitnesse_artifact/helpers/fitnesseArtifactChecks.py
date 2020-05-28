@@ -29,7 +29,7 @@
 
 import supporting.errorcodes as err
 import supporting, logging
-import create_fitnesse_artifact.helpers.cicd.fitnesse.fitnesseSettings as settings
+import create_fitnesse_artifact.helpers.fitnesseSettings as settings
 from pathlib import Path
 
 logger = logging.getLogger(__name__)

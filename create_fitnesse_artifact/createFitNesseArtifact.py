@@ -23,20 +23,21 @@
 
 """
 .. versionchanged:: 20200528.0
-    * documentation only
+    * moved FitNesse to its own package
+    * documentation
 """
 __since__ = '23-OCT-2019'
 __version__ = '20200528.0'
 __author__ = 'Jac. Beekers'
 __licence__ = 'MIT'
-__url__ = 'https://github.com/consag/devops-informatica-tools'
+__url__ = 'https://github.com/consag/devops_fitnesse_tools'
 
 
 import logging, datetime, supporting
 import supporting.errorcodes as err
-import create_fitnesse_artifact.helpers.cicd.fitnesse.fitnesseArtifactChecks as fitnessechecks
-import create_fitnesse_artifact.helpers.cicd.fitnesse.artifact
-import create_fitnesse_artifact.helpers.cicd.fitnesse.fitnesseSettings as settings
+import create_fitnesse_artifact.helpers.fitnesseArtifactChecks as fitnessechecks
+import create_fitnesse_artifact.helpers.artifact as cicd
+import create_fitnesse_artifact.helpers.fitnesseSettings as settings
 import supporting.generalSettings as generalsettings
 import sys, argparse
 
