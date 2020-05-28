@@ -1,20 +1,10 @@
-# CI-CD Pipeline, Provisioning and Maintenance components for Informatica projects
+# CI-CD Pipeline, Provisioning and Maintenance components for FitNesse Testautomation
 
 ## Dependencies
-
-* Crypto module for password encryption. Depending on the method you want to use, you need to install one of the following packages:
-  pip install pycryptodome
-  pip install cryptography
-* setuptools for upload and download of Nexus artifacts
-  pip install setuptools
+Check requirements.txt
 
 ## Checks after installation
 
-### Check if encryption works
-
-* Create a virtualenv
-* Run:  python3 supporting/encryption.py
-  Output: Hello encrypted world!
 
 ## License
 
@@ -27,7 +17,7 @@ MIT
 * All components expect a deploylist text file as input. You should keep deploylists in your source code Git. Suggested location:
 <root>/<feature>/config/<deploylist> where <root> is the base location within your Git, <feature> is your submodule (if any), and <deploylist> is the text file that contains the items to be deployed.
   For example:
-  <myGit>/demo/config/oracle_deploylist.txt
+  <myGit>/demo/config/fitnesse_deploylist.txt
   <myGit>/demo/config/infa_deploylist.txt
 
 ### environment variables
@@ -39,4 +29,4 @@ MIT
 
 ## Examples
 
-Check the examples folder for more info on the structure of deploy lists.
+Check the examples folder in the Git repository devops-informatica-tools for more info on the structure of deploy lists.
