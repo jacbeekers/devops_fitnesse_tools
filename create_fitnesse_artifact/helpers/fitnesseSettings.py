@@ -28,10 +28,13 @@
 # @Version: 20191023.0 - JBE - Initial
 ##
 
-import create_fitnesse_artifact.helpers.fitnesseConstants as constants
-import supporting, os, logging
+import logging
+import os
+import supporting
 import supporting.generalSettings as generalsettings
 from supporting.generalSettings import completePath
+
+import create_fitnesse_artifact.helpers.fitnesseConstants as constants
 
 logger = logging.getLogger(__name__)
 

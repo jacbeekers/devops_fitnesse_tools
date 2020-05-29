@@ -27,17 +27,20 @@
 # @Author: Jac. Beekers
 # @Version: 20191023.0 - JBE - Initial
 
-import supporting.errorcodes as err
-import supporting, logging
 import os
-import create_fitnesse_artifact.helpers.fitnesseSettings as settings
-import supporting.deploylist
 from pathlib import Path
-from supporting.generatezip import generate_zip
-from supporting.generatezip import addto_zip
-from supporting.filehandling import copy_file
-from supporting import filehandling
+
+import logging
+import supporting
+import supporting.deploylist
+import supporting.errorcodes as err
 import supporting.generalSettings as generalSettings
+from supporting import filehandling
+from supporting.filehandling import copy_file
+from supporting.generatezip import addto_zip
+from supporting.generatezip import generate_zip
+
+import create_fitnesse_artifact.helpers.fitnesseSettings as settings
 
 logger = logging.getLogger(__name__)
 entrynr = 0
