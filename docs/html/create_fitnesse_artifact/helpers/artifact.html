@@ -53,85 +53,97 @@
 # @Author: Jac. Beekers
 # @Version: 20191023.0 - JBE - Initial
 
-import supporting.errorcodes as err
-import supporting, logging
 import os
-import create_fitnesse_artifact.helpers.fitnesseSettings as settings
-import supporting.deploylist
 from pathlib import Path
-from supporting.generatezip import generate_zip
-from supporting.generatezip import addto_zip
-from supporting.filehandling import copy_file
+
+import logging
+import supporting
+import supporting.deploylist
+import supporting.errorcodes as err
+from supporting import generalSettings
 from supporting import filehandling
-import supporting.generalSettings as generalSettings
+from supporting.filehandling import copy_file
+from supporting.generatezip import addto_zip
+from supporting.generatezip import generate_zip
 
-logger = logging.getLogger(__name__)
-entrynr = 0
-level = 0
-previous_schema = &#39;AUQW&amp;^D*AD&amp;FS&#39;
-
-
-def processList(deployFile):
-    latestError = err.OK
-    result, deployItems = supporting.deploylist.getWorkitemList(deployFile)
-    if result.rc == err.OK.rc:
-        filehandling.create_directory(settings.targetfitnessedir)
-        copy_file(deployFile, generalSettings.artifactDir)
-        for deployEntry in supporting.deploylist.deployItems:
-            result = processEntry(deployEntry)
-            if result.rc != 0:
-                latestError = result
-    else:
-        # if no deploy list, then that is just fine.
-        if result.rc == err.IGNORE.rc:
-            latestError = err.OK
-        else:
-            latestError = result
-    return latestError
+from create_fitnesse_artifact.helpers import fitnesseSettings
 
 
-def processEntry(deployEntry):
-    thisproc = &#34;processEntry&#34;
-    result = err.OK
-    supporting.log(logger, logging.DEBUG, thisproc, &#34;Current directory is &gt;&#34; + os.getcwd() + &#34;&lt;.&#34;)
-    supporting.log(logger, logging.DEBUG, thisproc, &#34;Started to work on deploy entry &gt;&#34; + deployEntry + &#34;&lt;.&#34;)
+class BuildFitNesseArtifact:
 
-    directory, suppress_zip = deployEntry.split(&#39;:&#39;, 2)
-    supporting.log(logger, logging.DEBUG, thisproc,
-                   &#39;Directory is &gt;&#39; + directory + &#39;&lt; and suppress_zip is &gt;&#39; + suppress_zip + &#39;&lt;&#39;)
-    zipfilename = settings.targetfitnessedir + &#34;/&#34; + directory.replace(&#39;/&#39;,&#39;_&#39;) + &#34;.zip&#34;
-    supporting.log(logger, logging.DEBUG, thisproc, &#39;zipfilename is &gt;&#39; + zipfilename + &#34;&lt;.&#34;)
+    def __init__(self, deploylist):
+        self.main_proc = &#39;BuildFitNesseArtifact&#39;
+        self.logger = logging.getLogger(self.main_proc)
+        self.entrynr = 0
+        self.level = 0
+        self.previous_schema = &#39;AUQW&amp;^D*AD&amp;FS&#39;
+        self.deploylist = deploylist
 
-    directoryPath = Path(directory)
-    if directoryPath.is_dir():
-        supporting.log(logger, logging.DEBUG, thisproc, &#39;Found directory &gt;&#39; + directory + &#34;&lt;.&#34;)
-        sourcefitnessedir = &#34;&#34;
-    else:
-        sourcefitnessedir = settings.sourcefitnessedir + &#34;/&#34;
-        supporting.log(logger, logging.DEBUG, thisproc, &#39;directory &gt;&#39; + directory + &#39;&lt; not found. Trying &gt;&#39;
-                       + sourcefitnessedir + directory + &#39;&lt;...&#39;)
-        directory = sourcefitnessedir + directory
+    def processEntry(self, deployEntry):
+        logger = self.logger
+        thisproc = &#34;processEntry&#34;
+        result = err.OK
+        supporting.log(logger, logging.DEBUG, thisproc, &#34;Current directory is &gt;&#34; + os.getcwd() + &#34;&lt;.&#34;)
+        supporting.log(logger, logging.DEBUG, thisproc, &#34;Started to work on deploy entry &gt;&#34; + deployEntry + &#34;&lt;.&#34;)
+
+        directory, suppress_zip = deployEntry.split(&#39;:&#39;, 2)
+        supporting.log(logger, logging.DEBUG, thisproc,
+                       &#39;Directory is &gt;&#39; + directory + &#39;&lt; and suppress_zip is &gt;&#39; + suppress_zip + &#39;&lt;&#39;)
+        zipfilename = fitnesseSettings.targetfitnessedir + &#34;/&#34; + directory.replace(&#39;/&#39;, &#39;_&#39;) + &#34;.zip&#34;
+        supporting.log(logger, logging.DEBUG, thisproc, &#39;zipfilename is &gt;&#39; + zipfilename + &#34;&lt;.&#34;)
+
         directoryPath = Path(directory)
         if directoryPath.is_dir():
             supporting.log(logger, logging.DEBUG, thisproc, &#39;Found directory &gt;&#39; + directory + &#34;&lt;.&#34;)
+            sourcefitnessedir = &#34;&#34;
         else:
-            supporting.log(logger, err.SQLFILE_NF.level, thisproc,
-                           &#34;directory checked &gt;&#34; + directory + &#34;&lt;. &#34; + err.DIRECTORY_NF.message)
-            result = err.DIRECTORY_NF
-            return result
+            sourcefitnessedir = fitnesseSettings.sourcefitnessedir + &#34;/&#34;
+            supporting.log(logger, logging.DEBUG, thisproc, &#39;directory &gt;&#39; + directory + &#39;&lt; not found. Trying &gt;&#39;
+                           + sourcefitnessedir + directory + &#39;&lt;...&#39;)
+            directory = sourcefitnessedir + directory
+            directoryPath = Path(directory)
+            if directoryPath.is_dir():
+                supporting.log(logger, logging.DEBUG, thisproc, &#39;Found directory &gt;&#39; + directory + &#34;&lt;.&#34;)
+            else:
+                supporting.log(logger, err.SQLFILE_NF.level, thisproc,
+                               &#34;directory checked &gt;&#34; + directory + &#34;&lt;. &#34; + err.DIRECTORY_NF.message)
+                result = err.DIRECTORY_NF
+                return result
 
-    if suppress_zip == &#39;Y&#39;:
-        supporting.log(logger, logging.DEBUG, thisproc, &#34;zip files will be ignored.&#34;)
-        result = generate_zip(sourcefitnessedir, directory, zipfilename, &#39;*&#39;, &#39;zip&#39;)
-        result = addto_zip(sourcefitnessedir, directory + &#39;.wiki&#39;, zipfilename, &#39;*&#39;, &#39;zip&#39;)
-    else:
-        supporting.log(logger, logging.DEBUG, thisproc, &#34;zip files will be included.&#34;)
-        result = generate_zip(sourcefitnessedir, directory, zipfilename)
-        result = addto_zip(sourcefitnessedir, directory + &#39;.wiki&#39;, zipfilename)
+        if suppress_zip == &#39;Y&#39;:
+            supporting.log(logger, logging.DEBUG, thisproc, &#34;zip files will be ignored.&#34;)
+            result = generate_zip(sourcefitnessedir, directory, zipfilename, &#39;*&#39;, &#39;zip&#39;)
+            supporting.log(logger, logging.DEBUG, thisproc, &#34;generate_zip returned: &#34; + result.code)
+            supporting.log(logger, logging.DEBUG, thisproc, &#34;Adding wiki file &gt;&#34; + directory + &#34;.wiki&lt; to zip.&#34;)
+            result = addto_zip(sourcefitnessedir, directory + &#39;.wiki&#39;, zipfilename, &#39;*&#39;, &#39;zip&#39;)
+        else:
+            supporting.log(logger, logging.DEBUG, thisproc, &#34;zip files will be included.&#34;)
+            result = generate_zip(sourcefitnessedir, directory, zipfilename)
+            supporting.log(logger, logging.DEBUG, thisproc, &#34;generate_zip returned: &#34; + result.code)
+            supporting.log(logger, logging.DEBUG, thisproc, &#34;Adding wiki file &gt;&#34; + directory + &#34;.wiki&lt; to zip.&#34;)
+            result = addto_zip(sourcefitnessedir, directory + &#39;.wiki&#39;, zipfilename)
 
-    supporting.log(logger, logging.DEBUG, thisproc,
-                   &#34;Completed with rc &gt;&#34; + str(result.rc) + &#34;&lt; and code &gt;&#34; + result.code + &#34;&lt;.&#34;)
-    return result</code></pre>
+        supporting.log(logger, logging.DEBUG, thisproc,
+                       &#34;Completed with rc &gt;&#34; + str(result.rc) + &#34;&lt; and code &gt;&#34; + result.code + &#34;&lt;.&#34;)
+        return result
+
+    def processList(self):
+        latestError = err.OK
+        result, deployItems = supporting.deploylist.getWorkitemList(self.deploylist)
+        if result.rc == err.OK.rc:
+            filehandling.create_directory(fitnesseSettings.targetfitnessedir)
+            copy_file(self.deploylist, generalSettings.artifactDir)
+            for deployEntry in supporting.deploylist.deployItems:
+                result = self.processEntry(deployEntry)
+                if result.rc != 0:
+                    latestError = result
+        else:
+            # if no deploy list, then that is just fine.
+            if result.rc == err.IGNORE.rc:
+                latestError = err.OK
+            else:
+                latestError = result
+        return latestError</code></pre>
 </details>
 </section>
 <section>
@@ -139,10 +151,13 @@ def processEntry(deployEntry):
 <section>
 </section>
 <section>
-<h2 class="section-title" id="header-functions">Functions</h2>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="create_fitnesse_artifact.helpers.artifact.processEntry"><code class="name flex">
-<span>def <span class="ident">processEntry</span></span>(<span>deployEntry)</span>
+<dt id="create_fitnesse_artifact.helpers.artifact.BuildFitNesseArtifact"><code class="flex name class">
+<span>class <span class="ident">BuildFitNesseArtifact</span></span>
+<span>(</span><span>deploylist)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -150,7 +165,95 @@ def processEntry(deployEntry):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def processEntry(deployEntry):
+<pre><code class="python">class BuildFitNesseArtifact:
+
+    def __init__(self, deploylist):
+        self.main_proc = &#39;BuildFitNesseArtifact&#39;
+        self.logger = logging.getLogger(self.main_proc)
+        self.entrynr = 0
+        self.level = 0
+        self.previous_schema = &#39;AUQW&amp;^D*AD&amp;FS&#39;
+        self.deploylist = deploylist
+
+    def processEntry(self, deployEntry):
+        logger = self.logger
+        thisproc = &#34;processEntry&#34;
+        result = err.OK
+        supporting.log(logger, logging.DEBUG, thisproc, &#34;Current directory is &gt;&#34; + os.getcwd() + &#34;&lt;.&#34;)
+        supporting.log(logger, logging.DEBUG, thisproc, &#34;Started to work on deploy entry &gt;&#34; + deployEntry + &#34;&lt;.&#34;)
+
+        directory, suppress_zip = deployEntry.split(&#39;:&#39;, 2)
+        supporting.log(logger, logging.DEBUG, thisproc,
+                       &#39;Directory is &gt;&#39; + directory + &#39;&lt; and suppress_zip is &gt;&#39; + suppress_zip + &#39;&lt;&#39;)
+        zipfilename = fitnesseSettings.targetfitnessedir + &#34;/&#34; + directory.replace(&#39;/&#39;, &#39;_&#39;) + &#34;.zip&#34;
+        supporting.log(logger, logging.DEBUG, thisproc, &#39;zipfilename is &gt;&#39; + zipfilename + &#34;&lt;.&#34;)
+
+        directoryPath = Path(directory)
+        if directoryPath.is_dir():
+            supporting.log(logger, logging.DEBUG, thisproc, &#39;Found directory &gt;&#39; + directory + &#34;&lt;.&#34;)
+            sourcefitnessedir = &#34;&#34;
+        else:
+            sourcefitnessedir = fitnesseSettings.sourcefitnessedir + &#34;/&#34;
+            supporting.log(logger, logging.DEBUG, thisproc, &#39;directory &gt;&#39; + directory + &#39;&lt; not found. Trying &gt;&#39;
+                           + sourcefitnessedir + directory + &#39;&lt;...&#39;)
+            directory = sourcefitnessedir + directory
+            directoryPath = Path(directory)
+            if directoryPath.is_dir():
+                supporting.log(logger, logging.DEBUG, thisproc, &#39;Found directory &gt;&#39; + directory + &#34;&lt;.&#34;)
+            else:
+                supporting.log(logger, err.SQLFILE_NF.level, thisproc,
+                               &#34;directory checked &gt;&#34; + directory + &#34;&lt;. &#34; + err.DIRECTORY_NF.message)
+                result = err.DIRECTORY_NF
+                return result
+
+        if suppress_zip == &#39;Y&#39;:
+            supporting.log(logger, logging.DEBUG, thisproc, &#34;zip files will be ignored.&#34;)
+            result = generate_zip(sourcefitnessedir, directory, zipfilename, &#39;*&#39;, &#39;zip&#39;)
+            supporting.log(logger, logging.DEBUG, thisproc, &#34;generate_zip returned: &#34; + result.code)
+            supporting.log(logger, logging.DEBUG, thisproc, &#34;Adding wiki file &gt;&#34; + directory + &#34;.wiki&lt; to zip.&#34;)
+            result = addto_zip(sourcefitnessedir, directory + &#39;.wiki&#39;, zipfilename, &#39;*&#39;, &#39;zip&#39;)
+        else:
+            supporting.log(logger, logging.DEBUG, thisproc, &#34;zip files will be included.&#34;)
+            result = generate_zip(sourcefitnessedir, directory, zipfilename)
+            supporting.log(logger, logging.DEBUG, thisproc, &#34;generate_zip returned: &#34; + result.code)
+            supporting.log(logger, logging.DEBUG, thisproc, &#34;Adding wiki file &gt;&#34; + directory + &#34;.wiki&lt; to zip.&#34;)
+            result = addto_zip(sourcefitnessedir, directory + &#39;.wiki&#39;, zipfilename)
+
+        supporting.log(logger, logging.DEBUG, thisproc,
+                       &#34;Completed with rc &gt;&#34; + str(result.rc) + &#34;&lt; and code &gt;&#34; + result.code + &#34;&lt;.&#34;)
+        return result
+
+    def processList(self):
+        latestError = err.OK
+        result, deployItems = supporting.deploylist.getWorkitemList(self.deploylist)
+        if result.rc == err.OK.rc:
+            filehandling.create_directory(fitnesseSettings.targetfitnessedir)
+            copy_file(self.deploylist, generalSettings.artifactDir)
+            for deployEntry in supporting.deploylist.deployItems:
+                result = self.processEntry(deployEntry)
+                if result.rc != 0:
+                    latestError = result
+        else:
+            # if no deploy list, then that is just fine.
+            if result.rc == err.IGNORE.rc:
+                latestError = err.OK
+            else:
+                latestError = result
+        return latestError</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="create_fitnesse_artifact.helpers.artifact.BuildFitNesseArtifact.processEntry"><code class="name flex">
+<span>def <span class="ident">processEntry</span></span>(<span>self, deployEntry)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def processEntry(self, deployEntry):
+    logger = self.logger
     thisproc = &#34;processEntry&#34;
     result = err.OK
     supporting.log(logger, logging.DEBUG, thisproc, &#34;Current directory is &gt;&#34; + os.getcwd() + &#34;&lt;.&#34;)
@@ -159,7 +262,7 @@ def processEntry(deployEntry):
     directory, suppress_zip = deployEntry.split(&#39;:&#39;, 2)
     supporting.log(logger, logging.DEBUG, thisproc,
                    &#39;Directory is &gt;&#39; + directory + &#39;&lt; and suppress_zip is &gt;&#39; + suppress_zip + &#39;&lt;&#39;)
-    zipfilename = settings.targetfitnessedir + &#34;/&#34; + directory.replace(&#39;/&#39;,&#39;_&#39;) + &#34;.zip&#34;
+    zipfilename = fitnesseSettings.targetfitnessedir + &#34;/&#34; + directory.replace(&#39;/&#39;, &#39;_&#39;) + &#34;.zip&#34;
     supporting.log(logger, logging.DEBUG, thisproc, &#39;zipfilename is &gt;&#39; + zipfilename + &#34;&lt;.&#34;)
 
     directoryPath = Path(directory)
@@ -167,7 +270,7 @@ def processEntry(deployEntry):
         supporting.log(logger, logging.DEBUG, thisproc, &#39;Found directory &gt;&#39; + directory + &#34;&lt;.&#34;)
         sourcefitnessedir = &#34;&#34;
     else:
-        sourcefitnessedir = settings.sourcefitnessedir + &#34;/&#34;
+        sourcefitnessedir = fitnesseSettings.sourcefitnessedir + &#34;/&#34;
         supporting.log(logger, logging.DEBUG, thisproc, &#39;directory &gt;&#39; + directory + &#39;&lt; not found. Trying &gt;&#39;
                        + sourcefitnessedir + directory + &#39;&lt;...&#39;)
         directory = sourcefitnessedir + directory
@@ -183,10 +286,14 @@ def processEntry(deployEntry):
     if suppress_zip == &#39;Y&#39;:
         supporting.log(logger, logging.DEBUG, thisproc, &#34;zip files will be ignored.&#34;)
         result = generate_zip(sourcefitnessedir, directory, zipfilename, &#39;*&#39;, &#39;zip&#39;)
+        supporting.log(logger, logging.DEBUG, thisproc, &#34;generate_zip returned: &#34; + result.code)
+        supporting.log(logger, logging.DEBUG, thisproc, &#34;Adding wiki file &gt;&#34; + directory + &#34;.wiki&lt; to zip.&#34;)
         result = addto_zip(sourcefitnessedir, directory + &#39;.wiki&#39;, zipfilename, &#39;*&#39;, &#39;zip&#39;)
     else:
         supporting.log(logger, logging.DEBUG, thisproc, &#34;zip files will be included.&#34;)
         result = generate_zip(sourcefitnessedir, directory, zipfilename)
+        supporting.log(logger, logging.DEBUG, thisproc, &#34;generate_zip returned: &#34; + result.code)
+        supporting.log(logger, logging.DEBUG, thisproc, &#34;Adding wiki file &gt;&#34; + directory + &#34;.wiki&lt; to zip.&#34;)
         result = addto_zip(sourcefitnessedir, directory + &#39;.wiki&#39;, zipfilename)
 
     supporting.log(logger, logging.DEBUG, thisproc,
@@ -194,8 +301,8 @@ def processEntry(deployEntry):
     return result</code></pre>
 </details>
 </dd>
-<dt id="create_fitnesse_artifact.helpers.artifact.processList"><code class="name flex">
-<span>def <span class="ident">processList</span></span>(<span>deployFile)</span>
+<dt id="create_fitnesse_artifact.helpers.artifact.BuildFitNesseArtifact.processList"><code class="name flex">
+<span>def <span class="ident">processList</span></span>(<span>self)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -203,14 +310,14 @@ def processEntry(deployEntry):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def processList(deployFile):
+<pre><code class="python">def processList(self):
     latestError = err.OK
-    result, deployItems = supporting.deploylist.getWorkitemList(deployFile)
+    result, deployItems = supporting.deploylist.getWorkitemList(self.deploylist)
     if result.rc == err.OK.rc:
-        filehandling.create_directory(settings.targetfitnessedir)
-        copy_file(deployFile, generalSettings.artifactDir)
+        filehandling.create_directory(fitnesseSettings.targetfitnessedir)
+        copy_file(self.deploylist, generalSettings.artifactDir)
         for deployEntry in supporting.deploylist.deployItems:
-            result = processEntry(deployEntry)
+            result = self.processEntry(deployEntry)
             if result.rc != 0:
                 latestError = result
     else:
@@ -223,8 +330,8 @@ def processEntry(deployEntry):
 </details>
 </dd>
 </dl>
-</section>
-<section>
+</dd>
+</dl>
 </section>
 </article>
 <nav id="sidebar">
@@ -238,10 +345,15 @@ def processEntry(deployEntry):
 <li><code><a title="create_fitnesse_artifact.helpers" href="index.html">create_fitnesse_artifact.helpers</a></code></li>
 </ul>
 </li>
-<li><h3><a href="#header-functions">Functions</a></h3>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="create_fitnesse_artifact.helpers.artifact.BuildFitNesseArtifact" href="#create_fitnesse_artifact.helpers.artifact.BuildFitNesseArtifact">BuildFitNesseArtifact</a></code></h4>
 <ul class="">
-<li><code><a title="create_fitnesse_artifact.helpers.artifact.processEntry" href="#create_fitnesse_artifact.helpers.artifact.processEntry">processEntry</a></code></li>
-<li><code><a title="create_fitnesse_artifact.helpers.artifact.processList" href="#create_fitnesse_artifact.helpers.artifact.processList">processList</a></code></li>
+<li><code><a title="create_fitnesse_artifact.helpers.artifact.BuildFitNesseArtifact.processEntry" href="#create_fitnesse_artifact.helpers.artifact.BuildFitNesseArtifact.processEntry">processEntry</a></code></li>
+<li><code><a title="create_fitnesse_artifact.helpers.artifact.BuildFitNesseArtifact.processList" href="#create_fitnesse_artifact.helpers.artifact.BuildFitNesseArtifact.processList">processList</a></code></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

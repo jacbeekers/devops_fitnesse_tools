@@ -1,13 +1,16 @@
 Module create_fitnesse_artifact.helpers.artifact
 ================================================
 
-Functions
----------
+Classes
+-------
 
-    
-`processEntry(deployEntry)`
+`BuildFitNesseArtifact(deploylist)`
 :   
 
-    
-`processList(deployFile)`
-:
+    ### Methods
+
+    `processEntry(self, deployEntry)`
+    :
+
+    `processList(self)`
+    :

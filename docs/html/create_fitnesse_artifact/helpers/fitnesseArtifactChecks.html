@@ -53,10 +53,13 @@
 # @Author: Jac. Beekers
 # @Version: 20191023.0 - JBE - Initial
 
-import supporting.errorcodes as err
-import supporting, logging
-import create_fitnesse_artifact.helpers.fitnesseSettings as settings
 from pathlib import Path
+
+import logging
+import supporting
+import supporting.errorcodes as err
+
+import create_fitnesse_artifact.helpers.fitnesseSettings as settings
 
 logger = logging.getLogger(__name__)
 
