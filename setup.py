@@ -1,6 +1,6 @@
-import setuptools
 import re
-import ast
+
+import setuptools
 
 # https://packaging.python.org/tutorials/packaging-projects/
 

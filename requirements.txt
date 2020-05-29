@@ -2,5 +2,6 @@
 #cryptography==2.8
 #pycryptodome==3.9.0
 #six
-devops-supporting-tools
+devops-supporting-tools>=1.2.21
+
 

@@ -22,16 +22,15 @@
 #
 
 """
-.. versionchanged:: 20200528.0
+.. versionchanged:: 20200529.0
     * moved FitNesse to its own package
     * documentation
 """
 __since__ = '23-OCT-2019'
-__version__ = '20200528.0'
+__version__ = '20200529.0'
 __author__ = 'Jac. Beekers'
 __licence__ = 'MIT'
 __url__ = 'https://github.com/consag/devops_fitnesse_tools'
-
 
 import argparse
 import datetime
@@ -42,72 +41,85 @@ import sys
 import supporting.errorcodes as err
 import supporting.generalSettings as generalsettings
 
-import create_fitnesse_artifact.helpers.artifact as cicd
+import create_fitnesse_artifact.helpers.artifact
 import create_fitnesse_artifact.helpers.fitnesseArtifactChecks as fitnessechecks
 import create_fitnesse_artifact.helpers.fitnesseSettings as settings
 
 now = datetime.datetime.now()
-result = err.OK
 
 
-def parse_the_arguments(argv):
-    """Parses the provided arguments and exits on an error.
-    Use the option -h on the command line to get an overview of the required and optional arguments.
+# result = err.OK
 
-    Args:
-        argv: List containing command line arguments
+class CreateFitNesseArtifact:
 
-    Returns:
-        A list with validated command line arguments
-     """
-    parser = argparse.ArgumentParser()
-    args = parser.parse_args()
+    def __init__(self, argv, log_on_console=True):
+        self.arguments = argv
+        self.mainProc = 'CreateFitNesseArtifact'
+        self.resultlogger = supporting.configurelogger(self.mainProc, log_on_console)
+        self.logger = supporting.logger
 
-    return args
+    def parse_the_arguments(self, arguments):
+        """Parses the provided arguments and exits on an error.
+        Use the option -h on the command line to get an overview of the required and optional arguments.
 
+        Args:
+            arguments: List containing command line arguments
 
-def main(argv):
-    """Creates a FitNesse artifact, consisting on collected test directories and files
-    It uses a deploy list that contains subdirectories.
-    Module uses environment variables that steer the artifact creation.
+        Returns:
+            A list with validated command line arguments
+        """
+        parser = argparse.ArgumentParser(prog=self.mainProc)
+        args = parser.parse_args(arguments)
 
-    Args:
-        None
-    """
-    thisproc = "MAIN"
-    mainProc = 'CreateFitNesseArtifact'
+        return args
 
-    resultlogger = supporting.configurelogger(mainProc)
-    logger = logging.getLogger(mainProc)
+    def runit(self, arguments):
+        """Creates a FitNesse artifact, consisting on collected test directories and files
+        It uses a deploy list that contains subdirectories.
+        Module uses environment variables that steer the artifact creation.
 
-    args = parse_the_arguments(argv)
+        Args:
+            arguments: The command line arguments (none actually at the moment)
+        """
+        thisproc = "runit"
+        mainProc = 'CreateFitNesseArtifact'
 
-    supporting.log(logger, logging.DEBUG, thisproc, 'Started')
-    supporting.log(logger, logging.DEBUG, thisproc, 'logDir is >' + generalsettings.logDir + "<.")
+        resultlogger = supporting.configurelogger(mainProc)
+        # self.logger = logging.getLogger(mainProc)
+        logger = self.logger
 
-    # Check requirements for artifact generation
-    generalsettings.getenvvars()
-    settings.getfitnesseenvvars()
-    settings.outfitnesseenvvars()
+        args = self.parse_the_arguments(arguments)
 
-    result = fitnessechecks.fitnesseartifactchecks()
-    if result.rc == err.IGNORE.rc:
-        # deploylist is not mandatory since 2020-02-09
-        supporting.log(logging, result.level, thisproc, 'Artifact ignored.')
-        result = err.OK
-    else:
-        if result.rc != err.OK.rc:
-            supporting.log(logger, logging.ERROR, thisproc,
-                           'FitNesse Artifact Checks failed with >' + result.message + "<.")
-            supporting.exitscript(resultlogger, result)
+        supporting.log(logger, logging.DEBUG, thisproc, 'Started')
+        supporting.log(logger, logging.DEBUG, thisproc, 'logDir is >' + generalsettings.logDir + "<.")
+
+        # Check requirements for artifact generation
+        generalsettings.getenvvars()
+        settings.getfitnesseenvvars()
+        settings.outfitnesseenvvars()
+
+        result = fitnessechecks.fitnesseartifactchecks()
+        if result.rc == err.IGNORE.rc:
+            # deploylist is not mandatory since 2020-02-09
+            supporting.log(logging, result.level, thisproc, 'Artifact ignored.')
+            result = err.OK
         else:
-            result = cicd.fitnesse.artifact.processList(settings.fitnessedeploylist)
+            if result.rc != err.OK.rc:
+                supporting.log(logger, logging.ERROR, thisproc,
+                               'FitNesse Artifact Checks failed with >' + result.message + "<.")
+                supporting.exitscript(resultlogger, result)
+            else:
+                builder = create_fitnesse_artifact.helpers.artifact.BuildFitNesseArtifact(settings.fitnessedeploylist)
+                result = builder.processList()
 
-    supporting.log(logger, logging.DEBUG, thisproc, 'Completed with return code >' + str(result.rc)
-                   + '< and result code >' + result.code + "<.")
-    #    supporting.writeresult(resultlogger, result)
-    supporting.exitscript(resultlogger, result)
+        supporting.log(logger, logging.DEBUG, thisproc, 'Completed with return code >' + str(result.rc)
+                       + '< and result code >' + result.code + "<.")
+        #    supporting.writeresult(resultlogger, result)
+        #supporting.exitscript(resultlogger, result)
+        return result
 
 
 if __name__ == '__main__':
-    main(sys.argv)
+    fitnesse = CreateFitNesseArtifact(sys.argv[1:], log_on_console=False)
+    result = fitnesse.runit(fitnesse.arguments)
+    supporting.exitscript(fitnesse.resultlogger, result)
