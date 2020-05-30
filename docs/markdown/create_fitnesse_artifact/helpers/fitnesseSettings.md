@@ -1,13 +1,16 @@
 Module create_fitnesse_artifact.helpers.fitnesseSettings
 ========================================================
 
-Functions
----------
+Classes
+-------
 
-    
-`getfitnesseenvvars()`
+`FitNesseSettings()`
 :   
 
-    
-`outfitnesseenvvars()`
-:
+    ### Methods
+
+    `getfitnesseenvvars(self)`
+    :
+
+    `outfitnesseenvvars(self)`
+    :

@@ -1,7 +1,8 @@
 Module create_fitnesse_artifact.createFitNesseArtifact
 ======================================================
-.. versionchanged:: 20200529.0
+.. versionchanged:: 20200530.0
     * moved FitNesse to its own package
+    * changes due to logging module changes
     * documentation
 
 Classes

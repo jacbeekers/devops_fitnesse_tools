@@ -1,9 +1,13 @@
 Module create_fitnesse_artifact.helpers.fitnesseArtifactChecks
 ==============================================================
 
-Functions
----------
+Classes
+-------
 
-    
-`fitnesseartifactchecks()`
-:
+`FitNesseArtifactChecks()`
+:   
+
+    ### Methods
+
+    `fitnesse_artifact_checks(self, fitnesse_settings)`
+    :

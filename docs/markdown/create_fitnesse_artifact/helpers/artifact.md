@@ -4,7 +4,7 @@ Module create_fitnesse_artifact.helpers.artifact
 Classes
 -------
 
-`BuildFitNesseArtifact(deploylist)`
+`BuildFitNesseArtifact(fitnesse_settings, deploylist='fitnesse_deploylist.txt')`
 :   
 
     ### Methods
