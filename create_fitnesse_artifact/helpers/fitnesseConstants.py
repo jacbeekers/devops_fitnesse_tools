@@ -28,14 +28,14 @@
 # @Version: 20191023.0 - JBE - Initial
 
 # Database artifacts
-varFitNesseDeployList='FITNESSE_DEPLOYLIST'
-varSourceFitNesseDir='SOURCE_FITNESSEDIR'
-varTargetFitNesseDir='TARGET_FITNESSEDIR'
+varFitNesseDeployList = 'FITNESSE_DEPLOYLIST'
+varSourceFitNesseDir = 'SOURCE_FITNESSEDIR'
+varTargetFitNesseDir = 'TARGET_FITNESSEDIR'
 
 ##
 # FitNesse artifact defaults
-DEFAULT_SOURCE_FITNESSEDIR ='.'
-DEFAULT_TARGET_FITNESSEDIR ='.'
-DEFAULT_FITNESSE_DEPLOYLIST ='fitnesse_deploylist.txt'
+DEFAULT_SOURCE_FITNESSEDIR = '.'
+DEFAULT_TARGET_FITNESSEDIR = '.'
+DEFAULT_FITNESSE_DEPLOYLIST = 'fitnesse_deploylist.txt'
 
-NOT_SET ='NOT_SET'
+NOT_SET = 'NOT_SET'

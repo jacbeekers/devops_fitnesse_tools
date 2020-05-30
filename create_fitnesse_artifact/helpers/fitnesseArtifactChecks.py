@@ -27,33 +27,35 @@
 # @Author: Jac. Beekers
 # @Version: 20191023.0 - JBE - Initial
 
+import logging
 from pathlib import Path
 
-import logging
-import supporting
 import supporting.errorcodes as err
-
-import create_fitnesse_artifact.helpers.fitnesseSettings as settings
-
-logger = logging.getLogger(__name__)
+from supporting.logging import customLogger
 
 
-def fitnesseartifactchecks():
-    thisproc = "fitnesseartifactchecks"
-    supporting.log(logger, logging.DEBUG, thisproc, 'started')
-    result = err.OK
+class FitNesseArtifactChecks:
+    def __init__(self):
+        self.logger = logging.getLogger(__name__)
+        self.custom_logger = customLogger.CustomLogger('FitNesseArtifactChecks', True)
 
-    if not settings.fitnessedeploylist:
-        supporting.log(logger, err.IGNORE.level, thisproc, err.NO_DEPLOYLIST.message)
-        supporting.log(logger, err.IGNORE.level, thisproc, "Assuming FitNesse is NOT part of the solution.")
-        result = err.IGNORE
-    else:
-        deploylistFile = Path(settings.fitnessedeploylist)
-        if not deploylistFile.is_file():
-            supporting.log(logger, err.IGNORE.level, thisproc,
-                           "fitnessedeploylist is >" + settings.fitnessedeploylist + "<. "
-                           + err.DEPLOYLIST_NF.message + " - FitNesse artifact IGNORED.")
+    def fitnesse_artifact_checks(self, fitnesse_settings):
+        thisproc = "fitnesseartifactchecks"
+        self.custom_logger.log(self.logger, logging.DEBUG, thisproc, 'started')
+        result = err.OK
+
+        if not fitnesse_settings.fitnessedeploylist:
+            self.custom_logger.log(self.logger, err.IGNORE.level, thisproc, err.NO_DEPLOYLIST.message)
+            self.custom_logger.log(self.logger, err.IGNORE.level, thisproc,
+                                   "Assuming FitNesse is NOT part of the solution.")
             result = err.IGNORE
+        else:
+            deploylistFile = Path(fitnesse_settings.fitnessedeploylist)
+            if not deploylistFile.is_file():
+                self.custom_logger.log(self.logger, err.IGNORE.level, thisproc,
+                                       "fitnessedeploylist is >" + fitnesse_settings.fitnessedeploylist + "<. "
+                                       + err.DEPLOYLIST_NF.message + " - FitNesse artifact IGNORED.")
+                result = err.IGNORE
 
-    supporting.log(logger, logging.DEBUG, thisproc, 'completed with >' + str(result.rc) + "<.")
-    return result
+        self.custom_logger.log(self.logger, logging.DEBUG, thisproc, 'completed with >' + str(result.rc) + "<.")
+        return result

@@ -26,86 +26,91 @@
 # @Since: 23-OCT-2019
 # @Author: Jac. Beekers
 # @Version: 20191023.0 - JBE - Initial
+# @Version: 20200529.0 - JBE - Changes due to changes in logging
 
+import logging
 import os
 from pathlib import Path
 
-import logging
-import supporting
 import supporting.deploylist
 import supporting.errorcodes as err
-from supporting import generalSettings
 from supporting import filehandling
+from supporting import generalSettings
 from supporting.filehandling import copy_file
 from supporting.generatezip import addto_zip
 from supporting.generatezip import generate_zip
+from supporting.logging import customLogger
 
-from create_fitnesse_artifact.helpers import fitnesseSettings
+from create_fitnesse_artifact.helpers import fitnesseConstants
 
 
 class BuildFitNesseArtifact:
 
-    def __init__(self, deploylist):
+    def __init__(self, fitnesse_settings, deploylist=fitnesseConstants.DEFAULT_FITNESSE_DEPLOYLIST):
         self.main_proc = 'BuildFitNesseArtifact'
-        self.logger = logging.getLogger(self.main_proc)
+        #        self.logger = logging.getLogger(self.main_proc)
+        self.logger = logging.getLogger(__name__)
+        self.custom_logger = customLogger.CustomLogger(self.main_proc, True)
         self.entrynr = 0
         self.level = 0
         self.previous_schema = 'AUQW&^D*AD&FS'
         self.deploylist = deploylist
+        self.fitnesse_settings = fitnesse_settings
 
     def processEntry(self, deployEntry):
         logger = self.logger
         thisproc = "processEntry"
         result = err.OK
-        supporting.log(logger, logging.DEBUG, thisproc, "Current directory is >" + os.getcwd() + "<.")
-        supporting.log(logger, logging.DEBUG, thisproc, "Started to work on deploy entry >" + deployEntry + "<.")
+        self.custom_logger.log(logger, logging.DEBUG, thisproc, "Current directory is >" + os.getcwd() + "<.")
+        self.custom_logger.log(logger, logging.DEBUG, thisproc,
+                               "Started to work on deploy entry >" + deployEntry + "<.")
 
         directory, suppress_zip = deployEntry.split(':', 2)
-        supporting.log(logger, logging.DEBUG, thisproc,
-                       'Directory is >' + directory + '< and suppress_zip is >' + suppress_zip + '<')
-        zipfilename = fitnesseSettings.targetfitnessedir + "/" + directory.replace('/', '_') + ".zip"
-        supporting.log(logger, logging.DEBUG, thisproc, 'zipfilename is >' + zipfilename + "<.")
+        self.custom_logger.log(logger, logging.DEBUG, thisproc,
+                               'Directory is >' + directory + '< and suppress_zip is >' + suppress_zip + '<')
+        zipfilename = self.fitnesse_settings.target_fitnesse_directory + "/" + directory.replace('/', '_') + ".zip"
+        self.custom_logger.log(logger, logging.DEBUG, thisproc, 'zipfilename is >' + zipfilename + "<.")
 
         directoryPath = Path(directory)
         if directoryPath.is_dir():
-            supporting.log(logger, logging.DEBUG, thisproc, 'Found directory >' + directory + "<.")
+            self.custom_logger.log(logger, logging.DEBUG, thisproc, 'Found directory >' + directory + "<.")
             sourcefitnessedir = ""
         else:
-            sourcefitnessedir = fitnesseSettings.sourcefitnessedir + "/"
-            supporting.log(logger, logging.DEBUG, thisproc, 'directory >' + directory + '< not found. Trying >'
-                           + sourcefitnessedir + directory + '<...')
+            sourcefitnessedir = self.fitnesse_settings.source_fitnesse_directory + "/"
+            self.custom_logger.log(logger, logging.DEBUG, thisproc, 'directory >' + directory + '< not found. Trying >'
+                                   + sourcefitnessedir + directory + '<...')
             directory = sourcefitnessedir + directory
             directoryPath = Path(directory)
             if directoryPath.is_dir():
-                supporting.log(logger, logging.DEBUG, thisproc, 'Found directory >' + directory + "<.")
+                self.custom_logger.log(logger, logging.DEBUG, thisproc, 'Found directory >' + directory + "<.")
             else:
-                supporting.log(logger, err.SQLFILE_NF.level, thisproc,
-                               "directory checked >" + directory + "<. " + err.DIRECTORY_NF.message)
+                self.custom_logger.log(logger, err.SQLFILE_NF.level, thisproc,
+                                       "directory checked >" + directory + "<. " + err.DIRECTORY_NF.message)
                 result = err.DIRECTORY_NF
                 return result
 
         if suppress_zip == 'Y':
-            supporting.log(logger, logging.DEBUG, thisproc, "zip files will be ignored.")
+            self.custom_logger.log(logger, logging.DEBUG, thisproc, "zip files will be ignored.")
             result = generate_zip(sourcefitnessedir, directory, zipfilename, '*', 'zip')
-            supporting.log(logger, logging.DEBUG, thisproc, "generate_zip returned: " + result.code)
-            supporting.log(logger, logging.DEBUG, thisproc, "Adding wiki file >" + directory + ".wiki< to zip.")
+            self.custom_logger.log(logger, logging.DEBUG, thisproc, "generate_zip returned: " + result.code)
+            self.custom_logger.log(logger, logging.DEBUG, thisproc, "Adding wiki file >" + directory + ".wiki< to zip.")
             result = addto_zip(sourcefitnessedir, directory + '.wiki', zipfilename, '*', 'zip')
         else:
-            supporting.log(logger, logging.DEBUG, thisproc, "zip files will be included.")
+            self.custom_logger.log(logger, logging.DEBUG, thisproc, "zip files will be included.")
             result = generate_zip(sourcefitnessedir, directory, zipfilename)
-            supporting.log(logger, logging.DEBUG, thisproc, "generate_zip returned: " + result.code)
-            supporting.log(logger, logging.DEBUG, thisproc, "Adding wiki file >" + directory + ".wiki< to zip.")
+            self.custom_logger.log(logger, logging.DEBUG, thisproc, "generate_zip returned: " + result.code)
+            self.custom_logger.log(logger, logging.DEBUG, thisproc, "Adding wiki file >" + directory + ".wiki< to zip.")
             result = addto_zip(sourcefitnessedir, directory + '.wiki', zipfilename)
 
-        supporting.log(logger, logging.DEBUG, thisproc,
-                       "Completed with rc >" + str(result.rc) + "< and code >" + result.code + "<.")
+        self.custom_logger.log(logger, logging.DEBUG, thisproc,
+                               "Completed with rc >" + str(result.rc) + "< and code >" + result.code + "<.")
         return result
 
     def processList(self):
         latestError = err.OK
         result, deployItems = supporting.deploylist.getWorkitemList(self.deploylist)
         if result.rc == err.OK.rc:
-            filehandling.create_directory(fitnesseSettings.targetfitnessedir)
+            filehandling.create_directory(self.fitnesse_settings.target_fitnesse_directory)
             copy_file(self.deploylist, generalSettings.artifactDir)
             for deployEntry in supporting.deploylist.deployItems:
                 result = self.processEntry(deployEntry)

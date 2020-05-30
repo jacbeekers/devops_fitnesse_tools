@@ -30,30 +30,40 @@
 
 import logging
 import os
-import supporting
+
 import supporting.generalSettings as generalsettings
 from supporting.generalSettings import completePath
+from supporting.logging import customLogger
 
 import create_fitnesse_artifact.helpers.fitnesseConstants as constants
 
-logger = logging.getLogger(__name__)
 
-sourcefitnessedir = constants.DEFAULT_SOURCE_FITNESSEDIR
-targetfitnessedir = constants.DEFAULT_TARGET_FITNESSEDIR
+class FitNesseSettings:
 
-def getfitnesseenvvars():
-    thisproc="getfitnesseenvvars"
-    global fitnessedeploylist, sourcefitnessedir, targetfitnessedir
-    supporting.log(logger, logging.DEBUG, thisproc, 'started')
-    fitnessedeploylist = completePath(os.environ.get(constants.varFitNesseDeployList, constants.DEFAULT_FITNESSE_DEPLOYLIST), generalsettings.sourceDir)
-    sourcefitnessedir = completePath(os.environ.get(constants.varSourceFitNesseDir, constants.DEFAULT_SOURCE_FITNESSEDIR), generalsettings.sourceDir)
-    targetfitnessedir = completePath(os.environ.get(constants.varTargetFitNesseDir, constants.DEFAULT_TARGET_FITNESSEDIR), generalsettings.sourceDir)
+    def __init__(self):
+        self.logger = logging.getLogger(__name__)
+        self.custom_logger = customLogger.CustomLogger('FitNesseSettings', True)
+        self.source_fitnesse_directory = constants.DEFAULT_SOURCE_FITNESSEDIR
+        self.target_fitnesse_directory = constants.DEFAULT_TARGET_FITNESSEDIR
 
+    def getfitnesseenvvars(self):
+        thisproc = "getfitnesseenvvars"
+        self.custom_logger.log(self.logger, logging.DEBUG, thisproc, 'started')
+        self.fitnessedeploylist = completePath(
+            os.environ.get(constants.varFitNesseDeployList, constants.DEFAULT_FITNESSE_DEPLOYLIST),
+            generalsettings.sourceDir)
+        self.source_fitnesse_directory = completePath(
+            os.environ.get(constants.varSourceFitNesseDir, constants.DEFAULT_SOURCE_FITNESSEDIR),
+            generalsettings.sourceDir)
+        self.target_fitnesse_directory = completePath(
+            os.environ.get(constants.varTargetFitNesseDir, constants.DEFAULT_TARGET_FITNESSEDIR),
+            generalsettings.sourceDir)
 
-def outfitnesseenvvars():
-    thisproc = "outfitnesseenvvars"
-    supporting.log(logger, logging.INFO,  thisproc, 'fitnessedeploylist is >' + fitnessedeploylist + "<.")
-    supporting.log(logger, logging.INFO,  thisproc, 'sourcefitnessedir is >' + sourcefitnessedir +"<.")
-    supporting.log(logger, logging.INFO,  thisproc, 'targetfitnessedir is >' + targetfitnessedir +"<.")
-
-
+    def outfitnesseenvvars(self):
+        thisproc = "outfitnesseenvvars"
+        self.custom_logger.log(self.logger, logging.INFO, thisproc,
+                               'fitnessedeploylist is >' + self.fitnessedeploylist + "<.")
+        self.custom_logger.log(self.logger, logging.INFO, thisproc,
+                               'sourcefitnessedir is >' + self.source_fitnesse_directory + "<.")
+        self.custom_logger.log(self.logger, logging.INFO, thisproc,
+                               'targetfitnessedir is >' + self.target_fitnesse_directory + "<.")

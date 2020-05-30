@@ -22,12 +22,13 @@
 #
 
 """
-.. versionchanged:: 20200529.0
+.. versionchanged:: 20200530.0
     * moved FitNesse to its own package
+    * changes due to logging module changes
     * documentation
 """
 __since__ = '23-OCT-2019'
-__version__ = '20200529.0'
+__version__ = '20200530.0'
 __author__ = 'Jac. Beekers'
 __licence__ = 'MIT'
 __url__ = 'https://github.com/consag/devops_fitnesse_tools'
@@ -35,17 +36,15 @@ __url__ = 'https://github.com/consag/devops_fitnesse_tools'
 import argparse
 import datetime
 import logging
-import supporting
 import sys
 
 import supporting.errorcodes as err
 import supporting.generalSettings as generalsettings
+from supporting.logging import customLogger
 
 import create_fitnesse_artifact.helpers.artifact
-import create_fitnesse_artifact.helpers.fitnesseArtifactChecks as fitnessechecks
-import create_fitnesse_artifact.helpers.fitnesseSettings as settings
-
-now = datetime.datetime.now()
+from create_fitnesse_artifact.helpers import fitnesseArtifactChecks
+from create_fitnesse_artifact.helpers import fitnesseSettings
 
 
 # result = err.OK
@@ -53,10 +52,16 @@ now = datetime.datetime.now()
 class CreateFitNesseArtifact:
 
     def __init__(self, argv, log_on_console=True):
+        self.now = datetime.datetime.now()
         self.arguments = argv
-        self.mainProc = 'CreateFitNesseArtifact'
-        self.resultlogger = supporting.configurelogger(self.mainProc, log_on_console)
-        self.logger = supporting.logger
+        self.main_proc = 'CreateFitNesseArtifact'
+        self.log_on_console = log_on_console
+        self.logger = logging.getLogger(__name__)
+        self.custom_logger = customLogger.CustomLogger(self.main_proc, log_on_console)
+        self.result_logger = customLogger.CustomLogger.configurelogger(self.custom_logger)
+        self.fitnesse_settings = fitnesseSettings.FitNesseSettings()
+        self.fitnesse_checks = fitnesseArtifactChecks.FitNesseArtifactChecks()
+        self.result = err.OK
 
     def parse_the_arguments(self, arguments):
         """Parses the provided arguments and exits on an error.
@@ -68,7 +73,7 @@ class CreateFitNesseArtifact:
         Returns:
             A list with validated command line arguments
         """
-        parser = argparse.ArgumentParser(prog=self.mainProc)
+        parser = argparse.ArgumentParser(prog=self.main_proc)
         args = parser.parse_args(arguments)
 
         return args
@@ -82,44 +87,42 @@ class CreateFitNesseArtifact:
             arguments: The command line arguments (none actually at the moment)
         """
         thisproc = "runit"
-        mainProc = 'CreateFitNesseArtifact'
-
-        resultlogger = supporting.configurelogger(mainProc)
-        # self.logger = logging.getLogger(mainProc)
+        args = self.parse_the_arguments(arguments)
         logger = self.logger
 
-        args = self.parse_the_arguments(arguments)
-
-        supporting.log(logger, logging.DEBUG, thisproc, 'Started')
-        supporting.log(logger, logging.DEBUG, thisproc, 'logDir is >' + generalsettings.logDir + "<.")
+        self.custom_logger.log(logger, logging.DEBUG, thisproc, 'Started')
+        self.custom_logger.log(logger, logging.DEBUG, thisproc, 'logDir is >' + generalsettings.logDir + "<.")
 
         # Check requirements for artifact generation
         generalsettings.getenvvars()
-        settings.getfitnesseenvvars()
-        settings.outfitnesseenvvars()
+        self.fitnesse_settings.getfitnesseenvvars()
+        self.fitnesse_settings.outfitnesseenvvars()
 
-        result = fitnessechecks.fitnesseartifactchecks()
-        if result.rc == err.IGNORE.rc:
+        self.result = self.fitnesse_checks.fitnesse_artifact_checks(self.fitnesse_settings)
+        if self.result.rc == err.IGNORE.rc:
             # deploylist is not mandatory since 2020-02-09
-            supporting.log(logging, result.level, thisproc, 'Artifact ignored.')
-            result = err.OK
+            self.custom_logger.log(logging, self.result.level, thisproc, 'Artifact ignored.')
+            self.result = err.OK
         else:
-            if result.rc != err.OK.rc:
-                supporting.log(logger, logging.ERROR, thisproc,
-                               'FitNesse Artifact Checks failed with >' + result.message + "<.")
-                supporting.exitscript(resultlogger, result)
+            if self.result.rc != err.OK.rc:
+                self.custom_logger.log(logger, logging.ERROR, thisproc,
+                                       'FitNesse Artifact Checks failed with >' + self.result.message + "<.")
+                self.custom_logger.writeresult(self.result_logger, self.result)
             else:
-                builder = create_fitnesse_artifact.helpers.artifact.BuildFitNesseArtifact(settings.fitnessedeploylist)
-                result = builder.processList()
+                builder = create_fitnesse_artifact.helpers.artifact.BuildFitNesseArtifact(self.fitnesse_settings
+                                                                                          ,
+                                                                                          self.fitnesse_settings.fitnessedeploylist)
+                self.result = builder.processList()
+                self.custom_logger.writeresult(self.result_logger, self.result)
 
-        supporting.log(logger, logging.DEBUG, thisproc, 'Completed with return code >' + str(result.rc)
-                       + '< and result code >' + result.code + "<.")
+        self.custom_logger.log(logger, logging.DEBUG, thisproc, 'Completed with return code >' + str(self.result.rc)
+                               + '< and result code >' + self.result.code + "<.")
         #    supporting.writeresult(resultlogger, result)
-        #supporting.exitscript(resultlogger, result)
-        return result
+        # supporting.exitscript(resultlogger, result)
+        return self.result
 
 
 if __name__ == '__main__':
     fitnesse = CreateFitNesseArtifact(sys.argv[1:], log_on_console=False)
     result = fitnesse.runit(fitnesse.arguments)
-    supporting.exitscript(fitnesse.resultlogger, result)
+    fitnesse.custom_logger.exitscript(fitnesse.result_logger, result)
