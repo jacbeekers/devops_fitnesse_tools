@@ -1,6 +1,6 @@
-import re
-
 import setuptools
+import re
+import ast
 
 # https://packaging.python.org/tutorials/packaging-projects/
 
@@ -14,23 +14,24 @@ _version_re = re.compile(r'__version__\s+=\s+(.*)')
 
 with open(version_file, 'rb') as f:
     for line in f:
-        line = line.strip()
+        line=line.strip()
         if line:
-            line = line.decode('utf-8')
+            line=line.decode('utf-8')
             reg_comment = re.compile(r'^#.*')
             m = reg_comment.search(line)
             if not m:
-                result_search = _version_re.search(line)
-                version = result_search.group(1)
-                version = version.strip('\"')
-                #               print("version is >" + version + "<.")
-                main_version, sub_version, fix_version = version.split(".")
-                fix_number = int(fix_version) + 1
-                new_version = main_version + "." + sub_version + "." + str(fix_number)
-                #               print("version will be >" + new_version + "<.")
-                with open(tmp_version_file, 'wb') as t:
-                    out_line = '__version__ = "' + new_version + '"\n'
+               result_search = _version_re.search(line)
+               version = result_search.group(1)
+               version = version.strip('\"')
+#               print("version is >" + version + "<.")
+               main_version, sub_version, fix_version = version.split(".")
+               fix_number = int(fix_version) + 1
+               new_version = main_version +"." + sub_version + "." + str(fix_number)
+#               print("version will be >" + new_version + "<.")
+               with open(tmp_version_file, 'wb') as t:
+                    out_line ='__version__ = "' + new_version + '"\n'
                     t.write(out_line.encode('utf-8'))
+ 
 
 setuptools.setup(
     name='devops_fitnesse_tools',
@@ -40,8 +41,9 @@ setuptools.setup(
     description='DevOps and CI-CD Pipeline scripts for FitNesse Testautomation',
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url='https://github.com/consag/devops_fitnesse_tools',
+    url='https://github.com/jacbeekers/devops_fitnesse_tools',
     packages=setuptools.find_packages(),
+    install_requires=["devops-supporting-tools>=1.2.28"],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
@@ -49,3 +51,4 @@ setuptools.setup(
     ],
     python_requires='>=3.6'
 )
+
