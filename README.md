@@ -30,13 +30,15 @@ MIT
 Check the examples folder in the Git repository devops-informatica-tools for more info on the structure of deploy lists.
 
 ### Run from python3 command line
-````
+```python
 $ python3
 >>> from create_fitnesse_artifact import createFitNesseArtifact
 >>> a=createFitNesseArtifact.CreateFitNesseArtifact([])
 >>> result=a.runit(a.arguments)
 >>> quit()
+```
 
+```shell
 
 $ ls -l *CreateFitNesseArtifact.log
 -rw-r--r--   1 jacbeekers  staff   2305 Jun  8 18:38 20200608-183831.984799-CreateFitNesseArtifact.log
@@ -63,7 +65,6 @@ $ more 20200608-183831.984799-CreateFitNesseArtifact.log
 2020-06-08 18:38:37,802 - root - WARNING - runit - Artifact ignored.
 2020-06-08 18:38:37,802 - create_fitnesse_artifact.createFitNesseArtifact - DEBUG - runit - Completed with return code >0< and result code >0<.
 ```
-
 
 
 
