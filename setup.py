@@ -2,6 +2,8 @@ import setuptools
 import re
 import ast
 
+supporting_tools_version = "1.2.30"
+
 # https://packaging.python.org/tutorials/packaging-projects/
 
 with open("README.md", "r") as fh:
@@ -43,7 +45,7 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url='https://github.com/jacbeekers/devops_fitnesse_tools',
     packages=setuptools.find_packages(),
-    install_requires=["devops-supporting-tools>=1.2.28"],
+    install_requires=["devops-supporting-tools>=" + supporting_tools_version],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
