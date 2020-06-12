@@ -79,13 +79,13 @@ class BuildFitNesseArtifact:
             sourcefitnessedir = self.fitnesse_settings.source_fitnesse_directory + "/"
             self.custom_logger.log(logger, logging.DEBUG, thisproc, 'directory >' + directory + '< not found. Trying >'
                                    + sourcefitnessedir + directory + '<...')
-            directory = sourcefitnessedir + directory
-            directoryPath = Path(directory)
+            prefixed_directory = sourcefitnessedir + directory
+            directoryPath = Path(prefixed_directory)
             if directoryPath.is_dir():
-                self.custom_logger.log(logger, logging.DEBUG, thisproc, 'Found directory >' + directory + "<.")
+                self.custom_logger.log(logger, logging.DEBUG, thisproc, 'Found directory >' + prefixed_directory + "<.")
             else:
                 self.custom_logger.log(logger, err.SQLFILE_NF.level, thisproc,
-                                       "directory checked >" + directory + "<. " + err.DIRECTORY_NF.message)
+                                       "directory checked >" + prefixed_directory + "<. " + err.DIRECTORY_NF.message)
                 result = err.DIRECTORY_NF
                 return result
 
