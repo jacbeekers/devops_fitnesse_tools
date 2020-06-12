@@ -2,7 +2,7 @@ import setuptools
 import re
 import ast
 
-supporting_tools_version = "1.2.30"
+supporting_tools_version = "1.2.31"
 
 # https://packaging.python.org/tutorials/packaging-projects/
 

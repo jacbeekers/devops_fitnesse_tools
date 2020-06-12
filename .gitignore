@@ -9,6 +9,10 @@ __pycache__/
 # C extensions
 *.so
 
+#fitnesse installdir
+fitnesse/
+fitnesse_source/
+
 # virtual env
 devops_informatica/
 devops-informatica-venv/
