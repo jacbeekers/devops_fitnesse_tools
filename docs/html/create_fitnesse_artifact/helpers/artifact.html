@@ -105,13 +105,13 @@ class BuildFitNesseArtifact:
             sourcefitnessedir = self.fitnesse_settings.source_fitnesse_directory + &#34;/&#34;
             self.custom_logger.log(logger, logging.DEBUG, thisproc, &#39;directory &gt;&#39; + directory + &#39;&lt; not found. Trying &gt;&#39;
                                    + sourcefitnessedir + directory + &#39;&lt;...&#39;)
-            directory = sourcefitnessedir + directory
-            directoryPath = Path(directory)
+            prefixed_directory = sourcefitnessedir + directory
+            directoryPath = Path(prefixed_directory)
             if directoryPath.is_dir():
-                self.custom_logger.log(logger, logging.DEBUG, thisproc, &#39;Found directory &gt;&#39; + directory + &#34;&lt;.&#34;)
+                self.custom_logger.log(logger, logging.DEBUG, thisproc, &#39;Found directory &gt;&#39; + prefixed_directory + &#34;&lt;.&#34;)
             else:
                 self.custom_logger.log(logger, err.SQLFILE_NF.level, thisproc,
-                                       &#34;directory checked &gt;&#34; + directory + &#34;&lt;. &#34; + err.DIRECTORY_NF.message)
+                                       &#34;directory checked &gt;&#34; + prefixed_directory + &#34;&lt;. &#34; + err.DIRECTORY_NF.message)
                 result = err.DIRECTORY_NF
                 return result
 
@@ -205,13 +205,13 @@ class BuildFitNesseArtifact:
             sourcefitnessedir = self.fitnesse_settings.source_fitnesse_directory + &#34;/&#34;
             self.custom_logger.log(logger, logging.DEBUG, thisproc, &#39;directory &gt;&#39; + directory + &#39;&lt; not found. Trying &gt;&#39;
                                    + sourcefitnessedir + directory + &#39;&lt;...&#39;)
-            directory = sourcefitnessedir + directory
-            directoryPath = Path(directory)
+            prefixed_directory = sourcefitnessedir + directory
+            directoryPath = Path(prefixed_directory)
             if directoryPath.is_dir():
-                self.custom_logger.log(logger, logging.DEBUG, thisproc, &#39;Found directory &gt;&#39; + directory + &#34;&lt;.&#34;)
+                self.custom_logger.log(logger, logging.DEBUG, thisproc, &#39;Found directory &gt;&#39; + prefixed_directory + &#34;&lt;.&#34;)
             else:
                 self.custom_logger.log(logger, err.SQLFILE_NF.level, thisproc,
-                                       &#34;directory checked &gt;&#34; + directory + &#34;&lt;. &#34; + err.DIRECTORY_NF.message)
+                                       &#34;directory checked &gt;&#34; + prefixed_directory + &#34;&lt;. &#34; + err.DIRECTORY_NF.message)
                 result = err.DIRECTORY_NF
                 return result
 
@@ -283,13 +283,13 @@ class BuildFitNesseArtifact:
         sourcefitnessedir = self.fitnesse_settings.source_fitnesse_directory + &#34;/&#34;
         self.custom_logger.log(logger, logging.DEBUG, thisproc, &#39;directory &gt;&#39; + directory + &#39;&lt; not found. Trying &gt;&#39;
                                + sourcefitnessedir + directory + &#39;&lt;...&#39;)
-        directory = sourcefitnessedir + directory
-        directoryPath = Path(directory)
+        prefixed_directory = sourcefitnessedir + directory
+        directoryPath = Path(prefixed_directory)
         if directoryPath.is_dir():
-            self.custom_logger.log(logger, logging.DEBUG, thisproc, &#39;Found directory &gt;&#39; + directory + &#34;&lt;.&#34;)
+            self.custom_logger.log(logger, logging.DEBUG, thisproc, &#39;Found directory &gt;&#39; + prefixed_directory + &#34;&lt;.&#34;)
         else:
             self.custom_logger.log(logger, err.SQLFILE_NF.level, thisproc,
-                                   &#34;directory checked &gt;&#34; + directory + &#34;&lt;. &#34; + err.DIRECTORY_NF.message)
+                                   &#34;directory checked &gt;&#34; + prefixed_directory + &#34;&lt;. &#34; + err.DIRECTORY_NF.message)
             result = err.DIRECTORY_NF
             return result
 
